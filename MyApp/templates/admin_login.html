@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- YouTube Background Video via iframe -->
+<div class="fixed inset-0 w-full h-full z-0 pointer-events-none">
+  <iframe
+    class="w-full h-full absolute inset-0 object-cover"
+    src=""
+    frameborder="0"
+    allow="autoplay; encrypted-media"
+    allowfullscreen
+    style="width:100vw; height:100vh; pointer-events:none;">
+  </iframe>
+  <div class="absolute inset-0 bg-black/70 backdrop-blur"></div>
+</div>
+
+<div class="flex items-center justify-center min-h-screen w-full relative z-10">
+  <div class="flex flex-col md:flex-row w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl">
+    <!-- Left: Login Form Card -->
+    <div class="w-full md:w-1/2 bg-white/90 dark:bg-gray-800/90 p-10 flex flex-col justify-center shadow-xl form-card">
+      <h2 class="text-3xl font-extrabold text-green-700 mb-6 text-center drop-shadow">CTKapp Login</h2>
+      <form method="post" class="grid grid-cols-1 gap-6">
+        <div class="relative group">
+          <input type="email" name="email" id="email"
+            class="peer w-full px-3 py-3 rounded bg-gray-100 dark:bg-gray-100 border border-green-600 dark:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-700 transition"
+            placeholder=" " required autocomplete="username">
+          <label for="email"
+            class="absolute left-3 top-3 text-green-900 dark:text-green-900 pointer-events-none transition-all duration-200 ease-in-out
+            peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-green-900
+            peer-focus:-top-5 peer-focus:text-xs peer-focus:text-green-600 dark:peer-focus:text-green-900 bg-white dark:bg-gray-100 px-1">
+            Email
+          </label>
+        </div>
+        <div class="relative group">
+          <input type="password" name="password" id="password"
+            class="peer w-full px-3 py-3 rounded bg-gray-100 dark:bg-gray-100 border border-green-300 dark:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-700 transition"
+            placeholder=" " required autocomplete="current-password">
+          <label for="password"
+            class="absolute left-3 top-3 text-green-900 dark:text-green-900 pointer-events-none transition-all duration-200 ease-in-out
+            peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-green-900
+            peer-focus:-top-5 peer-focus:text-xs peer-focus:text-green-600 dark:peer-focus:text-green-900 bg-white dark:bg-gray-100 px-1">
+            Password
+          </label>
+        </div>
+        <button type="submit"
+          class="w-full py-3 bg-gradient-to-r from-green-600 via-green-500 to-green-400 text-white rounded-xl font-bold shadow-lg hover:scale-105 hover:shadow-xl transition duration-200 animate-bounce-in">
+          Login
+        </button>
+        <div class="text-center">
+          <a href="/forgot_password" class="text-green-600 hover:underline text-sm transition">Forgot password?</a>
+        </div>
+        <div class="text-center">
+          <a href="/register" class="text-gray-500 hover:underline text-sm transition">Register as new admin/user</a>
+        </div>
+      </form>
+    </div>
+    <!-- Right: Typing Heading, Para, Button -->
+    <div class="w-full md:w-1/2 info-card flex flex-col justify-center items-center p-10 bg-green-50/70 dark:bg-gray-900/20">
+      <h1 id="typingHeading" class="text-4xl md:text-5xl font-extrabold text-white mb-4"></h1>
+      <p id="typingPara" class="text-lg text-green-300 mb-8 opacity-0 text-center"></p>
+      <a href="/register" class="px-8 py-3 bg-green-600 text-white rounded-full font-bold text-lg shadow-lg hover:bg-green-700 transition">Register</a>
+    </div>
+  </div>
+</div>
+
+<!-- Animated Blobs -->
+<div class="absolute -top-20 -left-20 w-96 h-96 bg-pink-400 opacity-30 rounded-full filter blur-3xl animate-blob1 z-0"></div>
+<div class="absolute -bottom-24 -right-24 w-96 h-96 bg-green-400 opacity-30 rounded-full filter blur-3xl animate-blob2 z-0"></div>
+
+<style>
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.96) translateY(30px);}
+  to { opacity: 1; transform: scale(1) translateY(0);}
+}
+.animate-fade-in { animation: fade-in 1s cubic-bezier(.68,-0.55,.27,1.55) both; }
+
+@keyframes bounce-in {
+  0% { transform: scale(0.8);}
+  60% { transform: scale(1.05);}
+  100% { transform: scale(1);}
+}
+.animate-bounce-in { animation: bounce-in 0.7s 0.2s both; }
+
+@keyframes blob1 {
+  0%, 100% { transform: scale(1) translateY(0) translateX(0);}
+  50% { transform: scale(1.2) translateY(40px) translateX(40px);}
+}
+@keyframes blob2 {
+  0%, 100% { transform: scale(1) translateY(0) translateX(0);}
+  50% { transform: scale(1.1) translateY(-30px) translateX(-30px);}
+}
+.animate-blob1 { animation: blob1 12s infinite ease-in-out;}
+.animate-blob2 { animation: blob2 10s infinite ease-in-out;}
+.form-card {
+  background: rgba(255,255,255,0.93);
+  box-shadow: 0 8px 32px 0 rgba(34,197,94,0.15), 0 1.5px 4px 0 rgba(0,0,0,0.08);
+}
+.info-card {
+  background: rgba(34,197,94,0.07);
+  box-shadow: 0 8px 32px 0 rgba(34,197,94,0.10), 0 1.5px 4px 0 rgba(0,0,0,0.06);
+}
+@media (max-width: 900px) {
+  .form-card, .info-card { border-radius: 0 !important; }
+}
+</style>
+
+<script>
+  // Typing animation for heading and para
+  const headingText = "Welcome back to CTKapp!";
+  const paraText = "Your campus conversations, smarter and more secure. Login to chat, collaborate, and connect with your community—just like WhatsApp, but designed for your world.";
+  const headingElem = document.getElementById('typingHeading');
+  const paraElem = document.getElementById('typingPara');
+
+  let i = 0;
+  function typeHeading() {
+    if (i < headingText.length) {
+      headingElem.textContent += headingText.charAt(i);
+      i++;
+      setTimeout(typeHeading, 45);
+    } else {
+      setTimeout(() => {
+        paraElem.textContent = paraText;
+        paraElem.classList.add('opacity-100', 'transition-opacity', 'duration-700');
+      }, 400);
+    }
+  }
+  window.addEventListener('DOMContentLoaded', typeHeading);
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-SocketIO
+Flask-Mail
+PyMySQL
+Werkzeug
+itsdangerous
+email-validator
+python-dotenv
+eventlet

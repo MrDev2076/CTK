@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" class="{{ 'dark' if session.get('theme') == 'dark' else '' }}">
+<head>
+    <meta charset="UTF-8">
+    <title>CTKapp Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+      tailwind.config = {
+        darkMode: 'class'
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/styles/style.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-500">
+   <nav class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 shadow">
+    <div class="relative">
+        <button onclick="document.getElementById('theme-menu').classList.toggle('hidden')" class="focus:outline-none">
+            <svg class="w-6 h-6 text-yellow-400 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="6"/>
+            </svg>
+        </button>
+        <div id="theme-menu" class="absolute left-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded shadow-lg hidden z-50">
+            <a href="{{ url_for('toggle_theme', next=request.path) }}" class="block px-4 py-2 hover:bg-indigo-100 dark:hover:bg-gray-700">
+                {% if session.get('theme', 'light') == 'light' %}
+                    <span>🌙 Dark Mode</span>
+                {% else %}
+                    <span>☀️ Light Mode</span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+    <span class="text-xl font-bold text-indigo-700 dark:text-indigo-200">CTKapp Chat</span>
+</nav>
+    {% block content %}{% endblock %}
+</body>
+</html>

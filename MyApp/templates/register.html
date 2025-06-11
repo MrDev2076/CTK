@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CTK-chattalkKonnect Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .backdrop-blur {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+    .typing {
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 3px solid #22c55e;
+      width: 0;
+      animation: typing 2.5s steps(30, end) forwards;
+    }
+    @media (max-width: 900px) {
+      .canvas-cols {
+        flex-direction: column;
+      }
+      .canvas-form, .canvas-info {
+        width: 100% !important;
+        max-width: none !important;
+      }
+    }
+    .form-card {
+      background: rgba(255,255,255,0.93);
+      box-shadow: 0 8px 32px 0 rgba(34,197,94,0.15), 0 1.5px 4px 0 rgba(0,0,0,0.08);
+    }
+    .info-card {
+      background: rgba(34,197,94,0.07);
+      box-shadow: 0 8px 32px 0 rgba(34,197,94,0.10), 0 1.5px 4px 0 rgba(0,0,0,0.06);
+    }
+    /* For overlay blur effect */
+    .overlay-blur {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.50);
+    }
+  </style>
+</head>
+<body class="relative min-h-screen flex items-center justify-center overflow-hidden">
+
+  <!-- YouTube Background Video via iframe -->
+  <div class="fixed inset-0 w-full h-full z-0 pointer-events-none">
+    <iframe
+      class="w-full h-full absolute inset-0 object-cover"
+      src="https://www.youtube.com/embed/kC0sLdh06aE?autoplay=1&mute=1&controls=0&loop=1&playlist=kC0sLdh06aE&modestbranding=1&showinfo=0&iv_load_policy=3&disablekb=1"
+      frameborder="0"
+      allow="autoplay; encrypted-media"
+      allowfullscreen
+      style="width:100vw; height:100vh; pointer-events:none;"
+    ></iframe>
+    <div class="absolute inset-0 overlay-blur"></div>
+  </div>
+
+  <!-- Foreground Content -->
+  <div class="relative z-10 flex canvas-cols w-full max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl">
+    <!-- Left: Registration Form -->
+    <div class="canvas-form w-1/2 min-w-[320px] max-w-md form-card p-10 flex flex-col justify-center">
+      <h2 class="text-3xl font-extrabold text-green-700 mb-6 text-center drop-shadow">Register</h2>
+      <form method="post" autocomplete="off" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="col-span-1">
+          <label class="block text-gray-800 font-semibold mb-1">Full Name</label>
+          <input type="text" name="name" class="w-full px-3 py-2 rounded bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition" placeholder="Your full name" required>
+        </div>
+        <div class="col-span-1">
+          <label class="block text-gray-800 font-semibold mb-1">Username</label>
+          <input type="text" name="username" class="w-full px-3 py-2 rounded bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition" placeholder="At least 8 chars, must contain a number" required>
+        </div>
+        <div class="col-span-1">
+          <label class="block text-gray-800 font-semibold mb-1">Email</label>
+          <input type="email" name="email" class="w-full px-3 py-2 rounded bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition" placeholder="Your email" required>
+        </div>
+        <div class="col-span-1">
+          <label class="block text-gray-800 font-semibold mb-1">Phone</label>
+          <input type="text" name="phone" class="w-full px-3 py-2 rounded bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition" placeholder="Your phone number" required>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-gray-800 font-semibold mb-1">Password</label>
+          <input type="password" name="password" id="password" class="w-full px-3 py-2 rounded bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition" placeholder="Strong password" required oninput="checkStrength(this.value)">
+          <div class="h-2 rounded bg-gray-200 mt-1 transition-all overflow-hidden">
+            <div id="strength-bar" class="h-2 rounded transition-all duration-300 ease-in"></div>
+          </div>
+          <div id="strength-text" class="text-xs mt-1 text-gray-500"></div>
+        </div>
+        <div class="col-span-2">
+          <button type="submit" class="w-full py-3 mt-2 bg-gradient-to-r from-green-600 via-green-500 to-green-400 text-white rounded-xl font-bold shadow-lg hover:scale-105 hover:shadow-xl transition duration-200">Register</button>
+        </div>
+      </form>
+    </div>
+    <!-- Right: Typing Heading, Para, Button -->
+    <div class="canvas-info w-1/2 min-w-[320px] max-w-xl info-card flex flex-col justify-center items-center p-10">
+      <h1 id="typingHeading" class="text-4xl md:text-5xl font-extrabold text-white mb-4 typing"></h1>
+      <p id="typingPara" class="text-lg text-green-300 mb-8 opacity-0 text-center"></p>
+      <a href="/login" class="px-8 py-3 bg-green-600 text-white rounded-full font-bold text-lg shadow-lg hover:bg-green-700 transition">Login</a>
+    </div>
+  </div>
+
+  <script>
+    // Typing animation for heading and para
+    const headingText = "Welcome to CTK";
+    const paraText = "Experience seamless, secure, and vibrant conversations. Register now to chat, share media, create groups, and connect—just like WhatsApp, but smarter for your campus and community.";
+    const headingElem = document.getElementById('typingHeading');
+    const paraElem = document.getElementById('typingPara');
+
+    let i = 0;
+    function typeHeading() {
+      if (i < headingText.length) {
+        headingElem.textContent += headingText.charAt(i);
+        i++;
+        setTimeout(typeHeading, 60);
+      } else {
+        setTimeout(() => {
+          paraElem.textContent = paraText;
+          paraElem.classList.add('opacity-100', 'transition-opacity', 'duration-700');
+        }, 400);
+      }
+    }
+    window.onload = typeHeading;
+
+    // Password strength bar
+    function checkStrength(pw) {
+      let bar = document.getElementById('strength-bar');
+      let text = document.getElementById('strength-text');
+      let strength = 0;
+      if (pw.length >= 8) strength += 1;
+      if (/\d/.test(pw)) strength += 1;
+      if (/[A-Za-z]/.test(pw)) strength += 1;
+      if (/[!@$%^&*()]/.test(pw) && !/[#\.\-]/.test(pw)) strength += 1;
+      let colors = ['#f87171', '#fbbf24', '#60a5fa', '#22c55e'];
+      let texts = ['Too weak', 'Weak', 'Good', 'Strong'];
+      bar.style.width = (strength * 25) + '%';
+      bar.style.background = colors[strength-1] || '#e5e7eb';
+      text.textContent = pw.length === 0 ? '' : texts[strength-1] || 'Too weak';
+      text.style.color = colors[strength-1] || '#6b7280';
+    }
+  </script>
+</body>
+</html>

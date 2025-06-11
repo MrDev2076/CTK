@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Light/Dark Mode Toggle Button -->
+<button id="theme-toggle" type="button"
+  class="fixed top-4 right-4 z-50 bg-white/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 rounded-full p-2 shadow hover:scale-110 transition"
+  title="Toggle theme">
+  <svg id="theme-toggle-dark-icon" class="hidden w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+  </svg>
+  <svg id="theme-toggle-light-icon" class="hidden w-6 h-6 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+  </svg>
+</button>
+
+<div class="flex flex-col md:flex-row min-h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white transition-colors duration-300">
+  <!-- Sidebar -->
+  <div class="w-full md:w-1/2 lg:w-1/2 bg-white dark:bg-gray-800 shadow-2xl rounded-b-2xl md:rounded-r-2xl md:rounded-b-none transition-all duration-500 flex flex-col overflow-hidden">
+
+    <!-- Profile Header -->
+    <div class="relative p-6 border-b border-gray-700/50 bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-gray-900/30">
+      <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/10 via-purple-900/10 to-gray-900/20 rounded-b-lg"></div>
+      <div class="relative z-10 flex flex-col space-y-2">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-lg font-bold text-green-400 tracking-widest mb-1">CTKapp Chat</div>
+            <div class="flex items-center space-x-3">
+              <h1 class="text-2xl font-bold text-white tracking-tight">{{ user.name }}</h1>
+              <a href="/profile" class="inline-flex items-center text-indigo-400 hover:text-indigo-300 transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span class="ml-1 text-sm">Edit Profile</span>
+              </a>
+            </div>
+            <div class="flex items-center space-x-2 text-gray-300 mt-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm">{{ user.contact }}</span>
+            </div>
+            <div class="flex space-x-3 pt-2">
+              <span class="px-3 py-1 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">Premium</span>
+              <span class="px-3 py-1 bg-gray-700/50 text-gray-300 text-xs font-medium rounded-full">Active now</span>
+            </div>
+          </div>
+          <!-- Avatar with preview -->
+          <div class="ml-6 cursor-pointer" onclick="openImageModal('{{ user.avatar }}')">
+            <div class="relative">
+              <img src="{{ user.avatar }}" class="w-20 h-20 rounded-full border-4 border-white/20 shadow-xl object-cover hover:scale-105 transition-transform duration-300">
+              <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-400 rounded-full border-2 border-gray-900"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div class="relative max-w-2xl w-full">
+        <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <img id="modalImage" class="w-full h-auto rounded-full border-8 border-white/10 shadow-2xl object-cover max-h-[70vh] mx-auto" src="">
+      </div>
+    </div>
+
+    <!-- Search & Camera Row -->
+    <div class="flex items-center px-4 py-2 bg-gray-700/60 border-b border-gray-700 space-x-2">
+      <div class="flex-1">
+        <input id="searchInput" type="text" class="w-full px-3 py-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-700 transition" placeholder="Search connections/rooms...">
+      </div>
+      <button onclick="openCameraModal()" class="ml-2 p-2 rounded-full bg-green-500 hover:bg-green-600 text-white shadow transition" title="Open Camera">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h2l2-3h10l2 3h2a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2zm7 8a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-700 bg-gray-700 shadow-inner rounded-t-2xl">
+      <button onclick="showTab('connections')" id="tab-connections" class="flex-1 text-center px-4 py-2 font-semibold border-b-2 border-transparent text-gray-300">My Connections</button>
+      <button onclick="showTab('notifications')" id="tab-notifications" class="flex-1 text-center px-4 py-2 font-semibold border-b-2 border-transparent text-gray-300">My Notifications</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="flex-1 overflow-y-auto px-4 py-2">
+      <!-- My Connections -->
+      <div id="connections-content" class="space-y-2">
+        {% if rooms %}
+          {% for member in rooms %}
+          <a href="{{ url_for('room', code=member.room.code) }}">
+            <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-indigo-800 transition animate-fade-in">
+              <img src="{{ member.room.icon or '/static/images/default-room.png' }}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700 shadow" alt="{{ member.room.name }}'s Icon">
+              <div>
+                <div class="font-semibold text-white">{{ member.room.name }}</div>
+                <div class="text-xs text-gray-300">
+                  {{ member.room.members|length }} members · {{ member.last_opened.strftime('%d %b, %H:%M') if member.last_opened else '' }}
+                </div>
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+        {% else %}
+        <div class="text-gray-400 text-center pt-10">No rooms joined yet.</div>
+        {% endif %}
+      </div>
+      <!-- Notifications -->
+      <div id="notifications-content" class="space-y-2 hidden">
+        {% if notifications %}
+          {% for note in notifications %}
+          <div class="bg-indigo-800 rounded p-2 mb-1 animate-fade-in">
+            <span class="font-semibold">{{ note.type.replace('_', ' ').title() }}</span>: {{ note.message }}
+            <span class="text-xs text-gray-400 float-right">{{ note.timestamp.strftime('%H:%M') }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-gray-400 text-center">No notifications</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Join Requests -->
+    {% if join_requests %}
+    <div class="px-4 py-2 border-t border-gray-700 text-sm font-semibold">Pending Join Requests</div>
+    <div class="overflow-y-auto max-h-32 px-4 py-2 space-y-2">
+      {% for req in join_requests %}
+        <div class="bg-yellow-800 rounded p-2 flex items-center justify-between animate-fade-in">
+          <span>{{ req.user.name }} for {{ req.room.name }}</span>
+          <form method="post" action="/approve_join/{{ req.id }}">
+            <button name="approve" value="1" class="bg-green-500 text-white px-2 py-1 rounded">Approve</button>
+            <button name="reject" value="1" class="bg-red-500 text-white px-2 py-1 rounded ml-1">Reject</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Join/Create Room -->
+    <div class="px-4 py-2 border-t border-gray-700">
+      <form method="post" class="space-y-2">
+        <button name="create" class="w-full py-2 bg-green-500 rounded-lg text-white font-bold hover:bg-green-600 transition">+ New Room</button>
+        <div class="flex items-center space-x-2">
+          <input type="text" name="code" class="flex-1 px-2 py-1 border rounded text-black" placeholder="Room code">
+          <button name="join" class="px-4 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600">Join</button>
+        </div>
+        {% if error %}
+        <div class="text-red-500 mt-2">{{ error }}</div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Content (Chat Preview) -->
+  <div class="w-full md:w-1/2 lg:w-1/2 p-4 bg-gray-100 dark:bg-gray-900 text-black dark:text-white overflow-auto">
+    {% include 'preview.html' %}
+  </div>
+</div>
+
+<!-- Camera Modal -->
+<div id="cameraModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+  <div class="relative max-w-2xl w-full">
+    <button onclick="closeCameraModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div id="camera-container" class="relative w-full aspect-video bg-gray-900 rounded-lg shadow-xl overflow-hidden">
+      <video id="camera-preview" class="w-full h-full object-cover" autoplay muted></video>
+      <canvas id="camera-canvas" class="hidden"></canvas>
+      <div class="absolute bottom-0 left-0 w-full p-4 flex justify-around items-center bg-black/50">
+        <button id="capture-button" class="p-3 rounded-full bg-green-500 hover:bg-green-600 text-white shadow transition" title="Take Photo">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        <button id="record-button" class="p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow transition" title="Record Video (30s)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10v2a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 00-1-1h-2a1 1 0 00-1 1z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 14v6m0-6v6m0 0v6a2 2 0 002 2h8a2 2 0 002-2v-6m0 0v-3.5a2 2 0 00-2-2h-8a2 2 0 00-2 2v3.5z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Light/Dark Mode Toggle (Tailwind "class" strategy)
+  var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+  var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+  // On page load, set icon and theme
+  function setThemeIcons() {
+    if (document.documentElement.classList.contains('dark')) {
+      themeToggleLightIcon.classList.remove('hidden');
+      themeToggleDarkIcon.classList.add('hidden');
+    } else {
+      themeToggleDarkIcon.classList.remove('hidden');
+      themeToggleLightIcon.classList.add('hidden');
+    }
+  }
+  if (localStorage.getItem('color-theme') === 'dark' ||
+      (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+  setThemeIcons();
+  document.getElementById('theme-toggle').addEventListener('click', function() {
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    setThemeIcons();
+  });
+
+  // Tabs logic (no Alpine.js needed)
+  function showTab(tab) {
+    document.getElementById('connections-content').classList.toggle('hidden', tab !== 'connections');
+    document.getElementById('notifications-content').classList.toggle('hidden', tab !== 'notifications');
+    document.getElementById('tab-connections').classList.toggle('border-indigo-500', tab === 'connections');
+    document.getElementById('tab-connections').classList.toggle('text-indigo-400', tab === 'connections');
+    document.getElementById('tab-notifications').classList.toggle('border-indigo-500', tab === 'notifications');
+    document.getElementById('tab-notifications').classList.toggle('text-indigo-400', tab === 'notifications');
+    document.getElementById('tab-connections').classList.toggle('text-gray-300', tab !== 'connections');
+    document.getElementById('tab-notifications').classList.toggle('text-gray-300', tab !== 'notifications');
+  }
+  // Show default tab
+  showTab('connections');
+
+  // Profile image modal logic
+  function openImageModal(imageUrl) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    modalImage.src = imageUrl;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+  }
+  document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) closeImageModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeImageModal();
+  });
+
+  // Search filter for connections/rooms
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    document.querySelectorAll('#connections-content > a').forEach(function(a) {
+      const text = a.textContent.toLowerCase();
+      a.style.display = text.includes(filter) ? '' : 'none';
+    });
+  });
+
+  // Camera Modal and Media Capture
+  let cameraStream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  const cameraModal = document.getElementById('cameraModal');
+  const cameraPreview = document.getElementById('camera-preview');
+  const cameraCanvas = document.getElementById('camera-canvas');
+
+  async function openCameraModal() {
+    cameraModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      cameraPreview.srcObject = cameraStream;
+    } catch (error) {
+      alert('Camera access denied or unavailable.');
+      closeCameraModal();
+    }
+  }
+
+  function closeCameraModal() {
+    cameraModal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+    }
+  }
+
+  document.getElementById('cameraModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCameraModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeCameraModal();
+  });
+
+  // Capture Photo
+  document.getElementById('capture-button').addEventListener('click', function() {
+    if (!cameraStream) return;
+    cameraCanvas.width = cameraPreview.videoWidth;
+    cameraCanvas.height = cameraPreview.videoHeight;
+    cameraCanvas.getContext('2d').drawImage(cameraPreview, 0, 0);
+    const imageDataURL = cameraCanvas.toDataURL('image/png');
+    sendCapturedMedia(imageDataURL, 'image');
+    closeCameraModal();
+  });
+
+  // Record Video
+  document.getElementById('record-button').addEventListener('click', function() {
+    if (!cameraStream) return;
+
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(cameraStream, { mimeType: 'video/webm' });
+
+    mediaRecorder.ondataavailable = function(event) {
+      if (event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = function() {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const videoURL = URL.createObjectURL(blob);
+      sendCapturedMedia(videoURL, 'video');
+      closeCameraModal();
+    };
+
+    mediaRecorder.start();
+    setTimeout(() => {
+      if (mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+    }, 30000); // Stop recording after 30 seconds
+  });
+
+  // Send Captured Media (replace with your logic)
+  function sendCapturedMedia(mediaURL, type) {
+    alert('Sending captured ' + type + ' (URL: ' + mediaURL + ') - Implement upload/send logic here');
+    // Implement your upload or message sending logic
+    // e.g., send to server, display in chat, etc.
+  }
+</script>
+{% endblock %}

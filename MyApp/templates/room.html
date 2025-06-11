@@ -1,0 +1,758 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex h-screen bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500 overflow-hidden">
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <button id="sidebar-toggle" class="md:hidden fixed left-2 top-2 z-30 p-2 bg-white/80 dark:bg-gray-800/80 rounded-full shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="hidden md:block md:w-1/3 lg:w-1/4 bg-white dark:bg-gray-800 shadow-xl transition-all duration-500 transform -translate-x-full md:translate-x-0 fixed md:relative inset-y-0 left-0 z-20 w-3/4">
+        <div class="p-4 flex items-center space-x-4 border-b border-gray-200 dark:border-gray-700">
+            <img src="{{ user.avatar }}" class="w-12 h-12 rounded-full border-2 border-indigo-500 shadow object-cover">
+            <div>
+                <div class="font-bold text-lg text-gray-900 dark:text-white">{{ user.name }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-300">{{ user.contact }}</div>
+            </div>
+            <a href="/profile" class="ml-auto text-indigo-500 hover:underline">Edit</a>
+        </div>
+        <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm font-semibold">Room Code: <span class="font-mono">{{ code }}</span></div>
+        <div class="px-4 py-2 h-[calc(100%-120px)] overflow-y-auto">
+            <div class="font-bold text-gray-900 dark:text-white mb-2">Members</div>
+            <div class="space-y-2">
+                {% for member in members %}
+                <div class="flex items-center space-x-2">
+                    <img src="{{ member.avatar }}" class="w-8 h-8 rounded-full object-cover">
+                    <span class="text-gray-800 dark:text-gray-200">{{ member.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Area -->
+    <div class="flex-1 flex flex-col bg-white/10 backdrop-blur-sm rounded-xl shadow-xl m-2 md:m-4 overflow-hidden relative transition-all duration-500" style="background-image: url('{{ room.wallpaper }}'); background-size:cover; background-position:center;">
+        <!-- Header -->
+        <div class="sticky top-0 z-20 flex items-center justify-between p-3 bg-indigo-700 dark:bg-gray-900/80 shadow transition-all duration-500">
+            <div class="flex items-center space-x-3">
+                <img src="{{ room.icon or '/static/images/default-room.png' }}" class="w-10 h-10 rounded-full border-2 border-indigo-400 object-cover">
+                <div>
+                    <div class="font-bold text-lg text-white">{{ room.name }}</div>
+                    <div class="text-white/80 text-xs">{{ members|length }} members</div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="relative group" id="settings-dropdown">
+                    <button class="p-2 rounded-full hover:bg-white/10 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                    <div class="hidden absolute right-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-30 p-2" id="settings-menu">
+                        <div class="text-gray-800 dark:text-white font-bold p-2 border-b border-gray-200 dark:border-gray-700">Chat Settings</div>
+                        <button onclick="document.getElementById('theme-selector').classList.toggle('hidden'); document.getElementById('settings-menu').classList.add('hidden')" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Change Theme</button>
+                        {% if is_creator %}
+                        <button onclick="document.getElementById('room-settings').classList.toggle('hidden'); document.getElementById('settings-menu').classList.add('hidden')" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Edit Room</button>
+                        {% endif %}
+                        <a href="/" class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Leave Room</a>
+                    </div>
+                </div>
+                <a href="/" class="px-3 py-1.5 text-sm rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">Back</a>
+            </div>
+        </div>
+        
+        <!-- Theme Selector -->
+        <div id="theme-selector" class="hidden absolute top-12 right-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-30 p-3 w-56">
+            <div class="font-bold text-sm text-gray-800 dark:text-white mb-2">Select Theme</div>
+            <div class="grid grid-cols-3 gap-2">
+                <div class="h-10 rounded cursor-pointer bg-gradient-to-br from-blue-400 to-blue-600" onclick="applyTheme('from-blue-400 to-blue-600')"></div>
+                <div class="h-10 rounded cursor-pointer bg-gradient-to-br from-purple-400 to-purple-600" onclick="applyTheme('from-purple-400 to-purple-600')"></div>
+                <div class="h-10 rounded cursor-pointer bg-gradient-to-br from-pink-400 to-pink-600" onclick="applyTheme('from-pink-400 to-pink-600')"></div>
+                <div class="h-10 rounded cursor-pointer bg-gradient-to-br from-green-400 to-green-600" onclick="applyTheme('from-green-400 to-green-600')"></div>
+                <div class="h-10 rounded cursor-pointer bg-gradient-to-br from-red-400 to-red-600" onclick="applyTheme('from-red-400 to-red-600')"></div>
+                <div class="h-10 rounded cursor-pointer bg-gradient-to-br from-yellow-400 to-yellow-600" onclick="applyTheme('from-yellow-400 to-yellow-600')"></div>
+                <div class="h-10 rounded cursor-pointer bg-gray-800" onclick="applyTheme('bg-gray-800')"></div>
+                <div class="h-10 rounded cursor-pointer relative overflow-hidden">
+                    <input type="file" id="custom-theme" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
+                    <div class="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room Settings -->
+        {% if is_creator %}
+        <div id="room-settings" class="hidden absolute top-12 right-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-30 p-3 w-56">
+            <form id="room-settings-form" method="post" action="/edit_room/{{ code }}" enctype="multipart/form-data" class="space-y-2">
+                <div class="font-bold text-sm text-gray-800 dark:text-white mb-1">Room Settings</div>
+                <input type="text" name="name" placeholder="Room Name" value="{{ room.name }}" class="w-full px-2 py-1.5 text-sm border rounded">
+                <label class="block text-xs text-gray-700 dark:text-gray-300">Room Icon</label>
+                <input type="file" name="icon_file" accept="image/*" class="w-full text-xs">
+                <label class="block text-xs text-gray-700 dark:text-gray-300">Wallpaper</label>
+                <input type="file" name="wallpaper_file" accept="image/*" class="w-full text-xs">
+                <button type="submit" class="w-full py-1.5 bg-indigo-600 text-white rounded text-sm font-bold hover:bg-indigo-700 transition">Save Changes</button>
+            </form>
+            <div class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2">
+                <div class="font-bold text-xs text-gray-800 dark:text-white mb-1">Remove Members</div>
+                {% for member in members %}
+                    {% if member.id != user.id %}
+                    <div class="flex items-center justify-between text-xs py-1">
+                        <span class="text-gray-700 dark:text-gray-300">{{ member.name }}</span>
+                        <a href="/remove_member/{{ code }}/{{ member.id }}" class="text-red-500 hover:underline text-xs">Remove</a>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Chat Messages -->
+        <div id="msgs-container" class="flex-1 overflow-y-auto transition-all duration-500" style="padding: 0.5rem;">
+            <ul id="messages" class="space-y-3 px-2"></ul>
+            <div id="reply-preview" class="sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-2 border-b border-gray-200 dark:border-gray-700 hidden">
+                <div class="flex justify-between items-center">
+                    <div class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Replying to <span id="reply-to-user"></span></div>
+                    <button onclick="cancelReply()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="reply-preview-content" class="text-xs text-gray-600 dark:text-gray-300 truncate"></div>
+            </div>
+            <button id="scroll-down-btn" class="hidden fixed bottom-20 right-4 bg-indigo-600 text-white rounded-full p-2 shadow-lg z-50 animate-bounce" onclick="scrollToBottom()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="sticky bottom-0 z-10 p-3 bg-white/80 dark:bg-gray-900/80 border-t border-white/10 flex items-center space-x-2 transition-all duration-500">
+            <form id="file-upload-form" enctype="multipart/form-data">
+                <input type="file" id="fileInput" name="file" class="hidden" onchange="sendFile()">
+                <button type="button" onclick="document.getElementById('fileInput').click()" class="p-2 rounded-lg bg-white/80 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">📎</button>
+            </form>
+            <button type="button" onclick="toggleEmojiPicker()" class="p-2 rounded-lg bg-white/80 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">😊</button>
+            <input type="text" id="message-input" placeholder="Type your message..." 
+                   class="flex-1 px-3 py-2 text-sm rounded-lg bg-white/90 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200">
+            <button id="send-btn" onclick="sendMessage()" 
+                    class="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">Send</button>
+            <input type="hidden" id="reply-to-message-id">
+        </div>
+        
+        <!-- Emoji Picker -->
+        <div id="emoji-picker" class="absolute bottom-14 left-2 bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg hidden z-10 grid grid-cols-8 gap-1 max-h-40 overflow-y-auto"></div>
+
+        <!-- Media Viewer Modal -->
+        <div id="media-viewer" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+            <div class="relative w-full h-full max-w-4xl max-h-screen flex items-center justify-center">
+                <button onclick="closeMediaViewer()" class="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <div id="media-content" class="max-w-full max-h-full"></div>
+                <button id="prev-media" class="absolute left-4 text-white bg-black/50 rounded-full p-2 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button id="next-media" class="absolute right-4 text-white bg-black/50 rounded-full p-2 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var socketio = io();
+    var room = "{{ code }}";
+    var user = "{{ user.name }}";
+    var userId = "{{ user.id }}";
+    var avatar = "{{ user.avatar }}";
+    socketio.emit("join", {room: room});
+
+    // Current reply information
+    var currentReply = {
+        messageId: null,
+        sender: null,
+        content: null,
+        file_url: null,
+        file_type: null
+    };
+
+    // Media viewer state
+    var mediaViewerState = {
+        currentIndex: 0,
+        mediaItems: []
+    };
+
+    function addMessage(msg, sender, senderId, avatarUrl, timestamp, file_url, file_type, messageId, replyTo) {
+        const li = document.createElement("li");
+        li.className = sender === user ? "flex justify-end animate-fade-in" : "flex justify-start animate-fade-in";
+        li.dataset.messageId = messageId;
+        li.dataset.senderId = senderId;
+        
+        let content = "";
+        
+        // Add reply preview if this is a reply
+        if (replyTo) {
+            content += `
+                <div class="text-xs text-indigo-600 dark:text-indigo-400 mb-1 cursor-pointer" 
+                     onclick="scrollToMessage('${replyTo.messageId}')">
+                    Replying to ${replyTo.sender}
+                </div>
+                <div class="text-xs text-gray-600 dark:text-gray-400 bg-white/30 dark:bg-gray-700/30 p-1 rounded mb-1 border-l-2 border-indigo-500 truncate">
+                    ${replyTo.content ? replyTo.content.substring(0, 50) + (replyTo.content.length > 50 ? '...' : '') : ''}
+                    ${replyTo.file_url ? '[File]' : ''}
+                </div>
+            `;
+        }
+        
+        // Add file content with standardized sizes
+        if (file_url) {
+            if (['png','jpg','jpeg','gif'].includes(file_type)) {
+                content += `
+                    <div class="relative">
+                        <img src="${file_url}" 
+                             class="max-w-[200px] max-h-[200px] rounded-lg shadow mb-1 object-cover cursor-pointer"
+                             onclick="openMediaViewer('${file_url}', 'image')">
+                    </div>
+                `;
+                // Add to media items for carousel
+                mediaViewerState.mediaItems.push({
+                    type: 'image',
+                    url: file_url
+                });
+            } else if (['mp4','webm','ogg'].includes(file_type)) {
+                content += `
+                    <div class="relative">
+                        <video class="max-w-[300px] max-h-[300px] rounded-lg shadow mb-1 bg-black cursor-pointer"
+                               onclick="openMediaViewer('${file_url}', 'video')">
+                            <source src="${file_url}" type="video/${file_type}">
+                        </video>
+                    </div>
+                `;
+                mediaViewerState.mediaItems.push({
+                    type: 'video',
+                    url: file_url
+                });
+            } else if (['mp3','wav','ogg'].includes(file_type)) {
+                content += `
+                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg max-w-[300px]">
+                        <div class="text-xs font-medium mb-1 truncate">${file_url.split('/').pop()}</div>
+                        <audio controls class="w-full">
+                            <source src="${file_url}" type="audio/${file_type}">
+                        </audio>
+                    </div>
+                `;
+            } else {
+                content += `
+                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg max-w-[300px]">
+                        <div class="flex items-center">
+                            <svg class="w-8 h-8 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <div>
+                                <div class="text-xs font-medium truncate">${file_url.split('/').pop()}</div>
+                                <a href="${file_url}" target="_blank" class="text-xs text-indigo-600 underline">Download</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Add message text
+        if (msg) content += `<div class="break-words">${msg}</div>`;
+        
+        // Add dropdown menu button (V icon)
+        const dropdownButton = `
+            <button class="message-menu-btn p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                    onclick="toggleMessageMenu(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        `;
+        
+        // Add dropdown menu
+        const dropdownMenu = `
+            <div class="absolute right-0 mt-1 bg-white dark:bg-gray-800 rounded shadow-lg z-20 hidden message-menu w-40">
+                <button onclick="replyToMessage('${messageId}', '${sender}', '${msg || ''}', '${file_url || ''}', '${file_type || ''}')" 
+                        class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg">Reply</button>
+                <button onclick="reactToMessage('${messageId}')" 
+                        class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">React</button>
+                ${senderId === userId ? `
+                    <button onclick="deleteMessage('${messageId}', 'self')" 
+                            class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Delete for me</button>
+                    <button onclick="deleteMessage('${messageId}', 'all')" 
+                            class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg">Delete for everyone</button>
+                ` : `
+                    <button onclick="deleteMessage('${messageId}', 'self')" 
+                            class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg">Delete for me</button>
+                `}
+            </div>
+        `;
+        
+        li.innerHTML = `
+            <div class="flex items-end space-x-2 ${sender === user ? 'flex-row-reverse' : ''} relative message-container group">
+                <img src="${avatarUrl || '/static/images/default-user.png'}" class="w-8 h-8 rounded-full border-2 border-indigo-400 object-cover">
+                <div class="max-w-[70%]">
+                    <div class="flex items-center space-x-2 ${sender === user ? 'justify-end' : ''}">
+                        <div class="font-bold text-xs ${sender === user ? 'text-indigo-700 dark:text-indigo-200' : 'text-indigo-500 dark:text-indigo-300'}">${sender}</div>
+                        ${dropdownButton}
+                    </div>
+                    <div class="px-3 py-2 rounded-lg shadow ${sender === user ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100'} relative message-content">
+                        ${content}
+                        <div class="absolute -bottom-2 right-2 bg-white dark:bg-gray-800 rounded-full shadow-sm px-1 text-xs reactions-container flex items-center"></div>
+                    </div>
+                    <div class="text-xs text-right text-gray-400">${timestamp}</div>
+                </div>
+                ${dropdownMenu}
+            </div>
+        `;
+        
+        document.getElementById("messages").appendChild(li);
+        scrollDownButton();
+    }
+
+    function scrollToMessage(messageId) {
+        const messageElement = document.querySelector(`li[data-message-id="${messageId}"]`);
+        if (messageElement) {
+            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            messageElement.classList.add('animate-pulse');
+            setTimeout(() => {
+                messageElement.classList.remove('animate-pulse');
+            }, 2000);
+        }
+    }
+
+    function toggleMessageMenu(button) {
+        const menu = button.closest('.message-container').querySelector('.message-menu');
+        if (menu.classList.contains('hidden')) {
+            hideAllMessageMenus();
+            menu.classList.remove('hidden');
+            
+            // Position the menu properly
+            const rect = menu.getBoundingClientRect();
+            if (rect.bottom > window.innerHeight) {
+                menu.style.bottom = '100%';
+                menu.style.top = 'auto';
+            }
+        } else {
+            menu.classList.add('hidden');
+        }
+        event.stopPropagation();
+    }
+
+    function hideAllMessageMenus() {
+        document.querySelectorAll('.message-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    }
+
+    function replyToMessage(messageId, sender, message, fileUrl, fileType) {
+        currentReply = {
+            messageId: messageId,
+            sender: sender,
+            content: message,
+            file_url: fileUrl,
+            file_type: fileType
+        };
+        
+        document.getElementById('reply-to-message-id').value = messageId;
+        document.getElementById('reply-to-user').textContent = sender;
+        
+        let previewContent = message || '';
+        if (fileUrl) {
+            if (['png','jpg','jpeg','gif'].includes(fileType)) {
+                previewContent = '📷 Photo';
+            } else if (['mp4','webm','ogg'].includes(fileType)) {
+                previewContent = '🎥 Video';
+            } else if (['mp3','wav','ogg'].includes(fileType)) {
+                previewContent = '🎵 Audio';
+            } else {
+                previewContent = '📄 File';
+            }
+        }
+        
+        document.getElementById('reply-preview-content').textContent = previewContent;
+        document.getElementById('reply-preview').classList.remove('hidden');
+        document.getElementById('message-input').focus();
+        hideAllMessageMenus();
+    }
+
+    function cancelReply() {
+        currentReply = {
+            messageId: null,
+            sender: null,
+            content: null,
+            file_url: null,
+            file_type: null
+        };
+        document.getElementById('reply-to-message-id').value = '';
+        document.getElementById('reply-preview').classList.add('hidden');
+    }
+
+    function deleteMessage(messageId, scope) {
+        if (confirm(scope === 'all' ? 'Delete this message for everyone?' : 'Delete this message for you?')) {
+            socketio.emit('delete_message', {
+                messageId: messageId, 
+                scope: scope, 
+                room: room,
+                userId: userId
+            });
+        }
+        hideAllMessageMenus();
+    }
+
+    function reactToMessage(messageId) {
+        const menu = document.querySelector(`li[data-message-id="${messageId}"] .message-menu`);
+        if (menu) {
+            menu.innerHTML = `
+                <div class="p-2">
+                    <div class="grid grid-cols-4 gap-1">
+                        <button onclick="addReaction('${messageId}', '👍')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">👍</button>
+                        <button onclick="addReaction('${messageId}', '❤️')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">❤️</button>
+                        <button onclick="addReaction('${messageId}', '😂')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">😂</button>
+                        <button onclick="addReaction('${messageId}', '😮')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">😮</button>
+                        <button onclick="addReaction('${messageId}', '😢')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">😢</button>
+                        <button onclick="addReaction('${messageId}', '😡')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">😡</button>
+                        <button onclick="addReaction('${messageId}', '👏')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">👏</button>
+                        <button onclick="addReaction('${messageId}', '🎉')" class="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded">🎉</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function addReaction(messageId, reaction) {
+        socketio.emit('react_to_message', {
+            messageId: messageId, 
+            reaction: reaction, 
+            room: room,
+            userId: userId
+        });
+        hideAllMessageMenus();
+    }
+
+    // Media Viewer Functions
+    function openMediaViewer(url, type) {
+        mediaViewerState.currentIndex = mediaViewerState.mediaItems.findIndex(item => item.url === url);
+        updateMediaViewer();
+        document.getElementById('media-viewer').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMediaViewer() {
+        document.getElementById('media-viewer').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function updateMediaViewer() {
+        const mediaContent = document.getElementById('media-content');
+        const currentMedia = mediaViewerState.mediaItems[mediaViewerState.currentIndex];
+        
+        mediaContent.innerHTML = '';
+        if (currentMedia.type === 'image') {
+            const img = document.createElement('img');
+            img.src = currentMedia.url;
+            img.className = 'max-w-full max-h-full object-contain';
+            mediaContent.appendChild(img);
+        } else if (currentMedia.type === 'video') {
+            const video = document.createElement('video');
+            video.src = currentMedia.url;
+            video.controls = true;
+            video.autoplay = true;
+            video.className = 'max-w-full max-h-full';
+            mediaContent.appendChild(video);
+        }
+        
+        // Show/hide navigation buttons
+        document.getElementById('prev-media').style.display = mediaViewerState.currentIndex > 0 ? 'block' : 'none';
+        document.getElementById('next-media').style.display = mediaViewerState.currentIndex < mediaViewerState.mediaItems.length - 1 ? 'block' : 'none';
+    }
+
+    document.getElementById('prev-media').addEventListener('click', function() {
+        if (mediaViewerState.currentIndex > 0) {
+            mediaViewerState.currentIndex--;
+            updateMediaViewer();
+        }
+    });
+
+    document.getElementById('next-media').addEventListener('click', function() {
+        if (mediaViewerState.currentIndex < mediaViewerState.mediaItems.length - 1) {
+            mediaViewerState.currentIndex++;
+            updateMediaViewer();
+        }
+    });
+
+    // Socket Events
+    socketio.on("message", function(data) {
+        addMessage(
+            data.message, 
+            data.sender, 
+            data.senderId, 
+            data.avatar, 
+            data.timestamp, 
+            data.file_url, 
+            data.file_type, 
+            data.messageId,
+            data.replyTo
+        );
+        scrollDownButton();
+    });
+
+    socketio.on("message_deleted", function(data) {
+        const messageElement = document.querySelector(`li[data-message-id="${data.messageId}"]`);
+        if (messageElement) {
+            if (data.scope === 'all' || (data.scope === 'self' && data.deletedFor === userId)) {
+                messageElement.remove();
+            }
+        }
+    });
+
+    socketio.on("reaction_added", function(data) {
+        const messageElement = document.querySelector(`li[data-message-id="${data.messageId}"]`);
+        if (messageElement) {
+            const reactionsContainer = messageElement.querySelector('.reactions-container');
+            if (reactionsContainer) {
+                // Remove existing reaction from this user
+                const existingReaction = reactionsContainer.querySelector(`[data-user-id="${data.userId}"]`);
+                if (existingReaction) {
+                    existingReaction.remove();
+                }
+                
+                // Add new reaction if not empty
+                if (data.reaction) {
+                    const reactionSpan = document.createElement('span');
+                    reactionSpan.textContent = data.reaction;
+                    reactionSpan.className = 'inline-block mx-0.5';
+                    reactionSpan.dataset.userId = data.userId;
+                    reactionsContainer.appendChild(reactionSpan);
+                }
+            }
+        }
+    });
+
+    function sendMessage() {
+        var input = document.getElementById("message-input");
+        var msg = input.value.trim();
+        var replyToId = document.getElementById('reply-to-message-id').value;
+        
+        if (!msg && !replyToId) return;
+        
+        socketio.emit("message", {
+            room: room, 
+            message: msg,
+            replyTo: replyToId ? currentReply : null
+        });
+        
+        input.value = "";
+        cancelReply();
+    }
+
+    document.getElementById("message-input").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") { 
+            e.preventDefault(); 
+            sendMessage(); 
+        }
+    });
+
+    // Emoji picker
+    function toggleEmojiPicker() {
+        var picker = document.getElementById("emoji-picker");
+        picker.classList.toggle("hidden");
+    }
+
+    const emojis = "😀 😃 😄 😁 😆 😅 😂 😊 😇 😉 😍 🥰 😘 😗 😚 😙 🤗 🤩 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 🥱 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 😳 🤪 😵 😡 😠 🤬 😷 🤒 🤕".split(" ");
+
+    window.onload = function() {
+        // Initialize emoji picker
+        var picker = document.getElementById("emoji-picker");
+        emojis.forEach(e=> {
+            var btn = document.createElement("button");
+            btn.textContent = e;
+            btn.className = "text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1";
+            btn.onclick = (ev)=>{ev.preventDefault();document.getElementById("message-input").value += e;};
+            picker.appendChild(btn);
+        });
+
+        // Load messages from server
+        {% for msg in messages %}
+        addMessage(
+            `{{ msg.content|e }}`, 
+            `{{ msg.user.name }}`, 
+            `{{ msg.user.id }}`, 
+            `{{ msg.user.avatar }}`, 
+            `{{ msg.timestamp.strftime('%H:%M') }}`, 
+            `{{ msg.file_url or '' }}`, 
+            `{{ msg.file_type or '' }}`, 
+            `{{ msg.id }}`,
+            {% if msg.reply_to %}
+            {
+                messageId: `{{ msg.reply_to.id }}`,
+                sender: `{{ msg.reply_to.user.name }}`,
+                content: `{{ msg.reply_to.content|e }}`,
+                file_url: `{{ msg.reply_to.file_url or '' }}`,
+                file_type: `{{ msg.reply_to.file_type or '' }}`
+            }
+            {% else %}
+            null
+            {% endif %}
+        );
+        {% endfor %}
+        scrollToBottom();
+
+        // Close menus when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.message-menu') && !e.target.closest('.message-menu-btn')) {
+                hideAllMessageMenus();
+            }
+            if (!e.target.closest('#emoji-picker') && !e.target.closest('button[onclick="toggleEmojiPicker()"]')) {
+                document.getElementById('emoji-picker').classList.add('hidden');
+            }
+            if (!e.target.closest('#theme-selector') && !e.target.closest('button[onclick*="theme-selector"]')) {
+                document.getElementById('theme-selector').classList.add('hidden');
+            }
+            if (!e.target.closest('#room-settings') && !e.target.closest('button[onclick*="room-settings"]')) {
+                document.getElementById('room-settings').classList.add('hidden');
+            }
+            if (!e.target.closest('#settings-menu') && !e.target.closest('#settings-dropdown button')) {
+                document.getElementById('settings-menu').classList.add('hidden');
+            }
+        });
+
+        // Handle room settings form submission
+        document.getElementById('room-settings-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to update room settings');
+                }
+            });
+        });
+
+        // Apply saved theme
+        applyTheme(localStorage.getItem('chatTheme') || 'from-blue-500 via-indigo-500 to-purple-600');
+
+        // Sidebar toggle for mobile
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('sidebar').classList.toggle('transform');
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        });
+
+        // Settings dropdown
+        document.getElementById('settings-dropdown').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('settings-menu').classList.toggle('hidden');
+        });
+    }
+
+    // File sending
+    function sendFile() {
+        var input = document.getElementById("fileInput");
+        var file = input.files[0];
+        if (!file) return;
+        var formData = new FormData();
+        formData.append("file", file);
+        formData.append("room_code", room);
+        
+        // If replying, include the reply info
+        if (currentReply.messageId) {
+            formData.append("reply_to", currentReply.messageId);
+        }
+        
+        // Loader
+        let btn = document.getElementById("send-btn");
+        btn.disabled = true;
+        btn.textContent = "Uploading...";
+        fetch("/upload", {method: "POST", body: formData}).then(r => r.json()).then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                // Clear the reply if file was sent successfully
+                cancelReply();
+            }
+            input.value = "";
+            btn.disabled = false;
+            btn.textContent = "Send";
+        });
+    }
+
+    // Scroll to bottom and show/hide down arrow
+    function scrollToBottom() {
+        let msgs = document.getElementById("msgs-container");
+        msgs.scrollTop = msgs.scrollHeight;
+        scrollDownButton();
+    }
+
+    function scrollDownButton() {
+        let msgs = document.getElementById("msgs-container");
+        let btn = document.getElementById("scroll-down-btn");
+        if (msgs.scrollTop + msgs.clientHeight < msgs.scrollHeight - 50) {
+            btn.classList.remove('hidden');
+        } else {
+            btn.classList.add('hidden');
+        }
+    }
+
+    document.getElementById("msgs-container").addEventListener("scroll", scrollDownButton);
+
+    // Theme changer
+    function applyTheme(theme) {
+        if (!theme) return;
+        
+        // Update the background gradient
+        const mainDiv = document.querySelector('.h-screen');
+        if (theme.startsWith('bg-')) {
+            mainDiv.className = `flex h-screen ${theme} dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500 overflow-hidden`;
+        } else {
+            mainDiv.className = `flex h-screen bg-gradient-to-br ${theme} dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500 overflow-hidden`;
+        }
+        
+        // Save theme preference
+        localStorage.setItem('chatTheme', theme);
+        document.getElementById('theme-selector').classList.add('hidden');
+    }
+
+    // Handle custom theme image
+    document.getElementById('custom-theme').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const formData = new FormData();
+            formData.append('wallpaper_file', e.target.files[0]);
+            formData.append('room_code', room);
+            
+            fetch('/edit_room/{{ code }}', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to upload wallpaper');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

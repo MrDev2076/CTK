@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
+    <div class="w-full max-w-md mx-auto my-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 animate-fade-in">
+        <h2 class="text-2xl font-bold text-indigo-700 dark:text-indigo-300 mb-4">Status</h2>
+        <form method="post" enctype="multipart/form-data" class="mb-4">
+            <textarea name="content" class="w-full p-2 rounded border bg-gray-100 dark:bg-gray-700" placeholder="What's on your mind?"></textarea>
+            <input type="file" name="file" class="block mt-2">
+            <button type="submit" class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition">Post Status</button>
+        </form>
+        <div class="space-y-4">
+            {% for stat in statuses %}
+            <div class="bg-indigo-50 dark:bg-indigo-900 rounded p-3 shadow animate-fade-in">
+                <div class="flex items-center space-x-2">
+                    <img src="{{ stat.user.avatar }}" class="w-8 h-8 rounded-full">
+                    <span class="font-bold">{{ stat.user.name }}</span>
+                    <span class="text-xs text-gray-400">{{ stat.timestamp.strftime('%d %b, %H:%M') }}</span>
+                </div>
+                <div class="mt-2">
+                    {% if stat.file_url %}
+                        {% if stat.file_type in ['png','jpg','jpeg','gif'] %}
+                            <img src="{{ stat.file_url }}" class="max-w-xs rounded-lg shadow mb-1">
+                        {% elif stat.file_type == 'mp4' %}
+                            <video controls class="max-w-xs rounded-lg shadow mb-1"><source src="{{ stat.file_url }}" type="video/mp4"></video>
+                        {% elif stat.file_type == 'mp3' %}
+                            <audio controls class="w-40"><source src="{{ stat.file_url }}" type="audio/mpeg"></audio>
+                        {% else %}
+                            <a href="{{ stat.file_url }}" target="_blank" class="text-indigo-600 underline">{{ stat.file_url.split('/')[-1] }}</a>
+                        {% endif %}
+                    {% endif %}
+                    <div>{{ stat.content }}</div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Views: {{ stat.view_count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
